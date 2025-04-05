@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You are Offline - AgriTech Platform</title>
+    <style>
+        :root {
+            --primary-green: #2e7d32;
+            --secondary-green: #4caf50;
+            --light-green: #8bc34a;
+            --dark-green: #1b5e20;
+            --brown: #795548;
+            --white: #ffffff;
+            --black: #212121;
+        }
+        
+        body {
+            font-family: 'Roboto', 'Noto Sans', sans-serif;
+            color: var(--black);
+            background-color: #f1f1f1;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background-color: var(--primary-green);
+            color: var(--white);
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            flex: 1;
+        }
+        
+        .offline-card {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .offline-icon {
+            font-size: 4rem;
+            color: var(--primary-green);
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .offline-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--dark-green);
+        }
+        
+        .offline-message {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: #555;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-green);
+            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background-color: var(--dark-green);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary-green);
+            color: var(--primary-green);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary-green);
+            color: var(--white);
+        }
+        
+        .saved-content {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .saved-content h2 {
+            color: var(--dark-green);
+            border-bottom: 2px solid var(--light-green);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        
+        .saved-content-empty {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+        
+        .saved-content-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .saved-content-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .saved-content-item:last-child {
+            border-bottom: none;
+        }
+        
+        .saved-content-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark-green);
+        }
+        
+        .saved-content-meta {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer {
+            background-color: var(--dark-green);
+            color: var(--white);
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+        
+        @media (max-width: 576px) {
+            .offline-title {
+                font-size: 1.5rem;
+            }
+            
+            .offline-message {
+                font-size: 1rem;
+            }
+            
+            .offline-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <h1><i class="fas fa-leaf me-2"></i> AgriTech Platform</h1>
+    </header>
+    
+    <div class="container">
+        <div class="offline-card">
+            <div class="offline-icon">
+                <i class="fas fa-wifi-slash"></i>
+            </div>
+            <h2 class="offline-title">You are currently offline</h2>
+            <p class="offline-message">
+                Don't worry! You can still access some features and saved content.
+                We'll automatically reconnect when your internet connection is restored.
+            </p>
+            <div>
+                <button class="btn" id="retry-btn">
+                    <i class="fas fa-sync-alt me-2"></i> Retry Connection
+                </button>
+                <a href="/" class="btn btn-outline" style="margin-left: 10px;">
+                    <i class="fas fa-home me-2"></i> Go to Homepage
+                </a>
+            </div>
+        </div>
+        
+        <div class="saved-content">
+            <h2>Your Saved Content</h2>
+            <div id="saved-content-container">
+                <div class="saved-content-empty">
+                    <i class="fas fa-folder-open" style="font-size: 3rem; color: #ced4da; margin-bottom: 1rem;"></i>
+                    <p>No saved content available offline</p>
+                    <p>When online, you can save articles for offline reading</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <p>&copy; 2023 AgriTech Platform. All rights reserved.</p>
+    </footer>
+    
+    <script>
+        // Check if we have saved articles to display
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedContentContainer = document.getElementById('saved-content-container');
+            const retryBtn = document.getElementById('retry-btn');
+            
+            // Load saved articles if they exist
+            if (typeof localStorage !== 'undefined') {
+                try {
+                    const savedArticles = localStorage.getItem('savedArticles');
+                    if (savedArticles) {
+                        const articles = JSON.parse(savedArticles);
+                        
+                        if (articles.length > 0) {
+                            // Create content list
+                            let contentHTML = '<ul class="saved-content-list">';
+                            
+                            articles.forEach(article => {
+                                contentHTML += `
+                                    <li class="saved-content-item">
+                                        <div class="saved-content-title">${article.title}</div>
+                                        <div class="saved-content-meta">
+                                            <span>${article.category}</span> | 
+                                            <span>Saved on: ${new Date(article.savedAt).toLocaleString()}</span>
+                                        </div>
+                                        <p>${article.content.substring(0, 150)}...</p>
+                                    </li>
+                                `;
+                            });
+                            
+                            contentHTML += '</ul>';
+                            savedContentContainer.innerHTML = contentHTML;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading saved articles:', error);
+                }
+            }
+            
+            // Retry connection button
+            retryBtn.addEventListener('click', function() {
+                window.location.reload();
+            });
+            
+            // Check periodically if we're back online
+            setInterval(function() {
+                if (navigator.onLine) {
+                    window.location.reload();
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

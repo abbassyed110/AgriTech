@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Marketplace - AgriTech Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .marketplace-filters {
+        background-color: var(--white);
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .product-card {
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+    
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    }
+    
+    .product-img {
+        height: 180px;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+    }
+    
+    .product-img i {
+        font-size: 3.5rem;
+        color: var(--light-green);
+    }
+    
+    .product-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark-green);
+    }
+    
+    .product-seller {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    .filter-section {
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .filter-section:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+    
+    .filter-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .sort-dropdown {
+        min-width: 200px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <h1><i class="fas fa-store me-2"></i> <span data-i18n="marketplace">Marketplace</span></h1>
+        <p class="lead">Connect directly with buyers and sellers without middlemen.</p>
+    </div>
+    <div class="col-lg-4 text-end">
+        {% if current_user.is_authenticated %}
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-listing-modal">
+                <i class="fas fa-plus me-2"></i> <span data-i18n="add_listing">Add Listing</span>
+            </button>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-2"></i> Login to Add Listing
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-3">
+        <!-- Marketplace Filters -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-filter me-2"></i> <span data-i18n="filter_results">Filter Results</span></h2>
+            </div>
+            <div class="card-body">
+                <form id="marketplace-filter-form">
+                    <div class="filter-section">
+                        <label class="filter-title" for="filter-crop-type">Crop Type</label>
+                        <select class="form-select" id="filter-crop-type">
+                            <option value="all" selected>All Crops</option>
+                            <option value="rice">Rice</option>
+                            <option value="wheat">Wheat</option>
+                            <option value="maize">Maize</option>
+                            <option value="potato">Potato</option>
+                            <option value="tomato">Tomato</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-section">
+                        <label class="filter-title" for="filter-location">Location</label>
+                        <input type="text" class="form-control" id="filter-location" placeholder="Enter location...">
+                    </div>
+                    
+                    <div class="filter-section">
+                        <label class="filter-title">Price Range (₹)</label>
+                        <div class="row">
+                            <div class="col-6">
+                                <input type="number" class="form-control" id="filter-min-price" placeholder="Min">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" class="form-control" id="filter-max-price" placeholder="Max">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <button type="button" class="btn btn-outline-secondary" id="reset-filters">Reset Filters</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Sort Options -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-sort me-2"></i> Sort By</h2>
+            </div>
+            <div class="card-body">
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle w-100" type="button" id="sort-dropdown-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                        Newest First
+                    </button>
+                    <ul class="dropdown-menu w-100" aria-labelledby="sort-dropdown-btn">
+                        <li><a class="dropdown-item sort-option" href="#" data-sort="date-newest">Newest First</a></li>
+                        <li><a class="dropdown-item sort-option" href="#" data-sort="date-oldest">Oldest First</a></li>
+                        <li><a class="dropdown-item sort-option" href="#" data-sort="price-asc">Price: Low to High</a></li>
+                        <li><a class="dropdown-item sort-option" href="#" data-sort="price-desc">Price: High to Low</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-9">
+        <!-- Marketplace Listings -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-list me-2"></i> <span data-i18n="product_listings">Product Listings</span></h2>
+            </div>
+            <div class="card-body">
+                {% if listings %}
+                    <div class="row g-4" id="marketplace-listings">
+                        {% for listing in listings %}
+                            <div class="col-md-4 col-sm-6" 
+                                data-crop-type="{{ listing.crop_name }}" 
+                                data-location="{{ listing.location }}" 
+                                data-price="{{ listing.price_per_unit }}"
+                                data-date="{{ listing.created_at.isoformat() }}">
+                                <div class="card product-card">
+                                    <div class="product-img">
+                                        <i class="fas fa-seedling"></i>
+                                    </div>
+                                    <div class="card-body">
+                                        <h3 class="card-title h5">{{ listing.crop_name }}</h3>
+                                        <div class="product-price mb-2">₹{{ listing.price_per_unit }}<small>/{{ listing.unit }}</small></div>
+                                        <p class="card-text mb-1">
+                                            <i class="fas fa-balance-scale me-1"></i> {{ listing.quantity }} {{ listing.unit }}
+                                        </p>
+                                        <p class="card-text mb-2">
+                                            <i class="fas fa-map-marker-alt me-1"></i> {{ listing.location }}
+                                        </p>
+                                        {% if listing.description %}
+                                            <p class="card-text small text-muted">{{ listing.description|truncate(60) }}</p>
+                                        {% endif %}
+                                        <div class="product-seller mb-3">
+                                            <i class="fas fa-user me-1"></i> {{ listing.seller.username }}
+                                        </div>
+                                        {% if current_user.is_authenticated and current_user.id != listing.user_id %}
+                                            <div class="d-grid">
+                                                <button class="btn btn-primary contact-seller-btn" 
+                                                        data-seller-id="{{ listing.user_id }}" 
+                                                        data-listing-id="{{ listing.id }}"
+                                                        data-crop-name="{{ listing.crop_name }}">
+                                                    <i class="fas fa-envelope me-1"></i> <span data-i18n="contact_seller">Contact Seller</span>
+                                                </button>
+                                            </div>
+                                        {% elif current_user.is_authenticated and current_user.id == listing.user_id %}
+                                            <div class="d-grid">
+                                                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#update-listing-modal-{{ listing.id }}">
+                                                    <i class="fas fa-edit me-1"></i> Edit Listing
+                                                </button>
+                                            </div>
+                                        {% else %}
+                                            <div class="d-grid">
+                                                <a href="{{ url_for('login') }}" class="btn btn-outline-primary">
+                                                    <i class="fas fa-sign-in-alt me-1"></i> Login to Contact
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-footer text-muted">
+                                        <small>Listed on {{ listing.created_at.strftime('%b %d, %Y') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div id="no-results-message" style="display: none;" class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i> No listings match your filter criteria.
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> <span data-i18n="no_listings">No listings available at this time.</span>
+                    </div>
+                    {% if current_user.is_authenticated %}
+                        <div class="text-center mt-4">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-listing-modal">
+                                <i class="fas fa-plus me-2"></i> <span data-i18n="add_listing">Add Your First Listing</span>
+                            </button>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Listing Modal -->
+{% if current_user.is_authenticated %}
+    <div class="modal fade" id="add-listing-modal" tabindex="-1" aria-labelledby="add-listing-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="add-listing-modal-label"><span data-i18n="add_listing">Add Marketplace Listing</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('add_listing') }}" method="post" id="add-listing-form" class="needs-validation" novalidate>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="crop-name-listing" class="form-label" data-i18n="crop_name">Crop Name</label>
+                            <input type="text" class="form-control" id="crop-name-listing" name="crop_name" required>
+                            <div class="invalid-feedback">Please enter a crop name</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="quantity" class="form-label" data-i18n="quantity">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" step="0.01" min="0.01" required>
+                                <div class="invalid-feedback">Please enter a valid quantity</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="unit" class="form-label" data-i18n="unit">Unit</label>
+                                <select class="form-select" id="unit" name="unit" required>
+                                    <option value="kg">Kilograms (kg)</option>
+                                    <option value="ton">Tons</option>
+                                    <option value="quintal">Quintals</option>
+                                    <option value="lb">Pounds (lb)</option>
+                                    <option value="dozen">Dozen</option>
+                                    <option value="piece">Pieces</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a unit</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="price-per-unit" class="form-label" data-i18n="price">Price per Unit (₹)</label>
+                            <input type="number" class="form-control" id="price-per-unit" name="price_per_unit" step="0.01" min="0.01" required>
+                            <div class="invalid-feedback">Please enter a valid price</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Variety, quality, or other details..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="location" class="form-label" data-i18n="location">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" value="{{ current_user.farm_location or '' }}" required>
+                            <div class="invalid-feedback">Please enter a location</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary" data-i18n="add_listing">Add Listing</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Update Listing Modals -->
+    {% for listing in listings %}
+        {% if current_user.id == listing.user_id %}
+            <div class="modal fade update-listing-modal" id="update-listing-modal-{{ listing.id }}" tabindex="-1" aria-labelledby="update-listing-modal-label-{{ listing.id }}" aria-hidden="true" data-listing-id="{{ listing.id }}">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="update-listing-modal-label-{{ listing.id }}">Update {{ listing.crop_name }} Listing</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form action="{{ url_for('update_listing', listing_id=listing.id) }}" method="post" class="update-listing-form" data-listing-id="{{ listing.id }}">
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="quantity-{{ listing.id }}" class="form-label">Quantity</label>
+                                        <input type="number" class="form-control" id="quantity-{{ listing.id }}" name="quantity" value="{{ listing.quantity }}" step="0.01" min="0.01" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="price-per-unit-{{ listing.id }}" class="form-label">Price per {{ listing.unit }} (₹)</label>
+                                        <input type="number" class="form-control" id="price-per-unit-{{ listing.id }}" name="price_per_unit" value="{{ listing.price_per_unit }}" step="0.01" min="0.01" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description-{{ listing.id }}" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description-{{ listing.id }}" name="description" rows="3">{{ listing.description }}</textarea>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="is-active-{{ listing.id }}" name="is_active" {% if listing.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="is-active-{{ listing.id }}">
+                                        Listing is active
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Update Listing</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/marketplace.js') }}"></script>
+{% endblock %}

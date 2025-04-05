@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Knowledge Base - AgriTech Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .category-pills {
+        margin-bottom: 1.5rem;
+    }
+    
+    .category-pill {
+        background-color: #e9ecef;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .category-pill:hover,
+    .category-pill.active {
+        background-color: var(--primary-green);
+        color: var(--white);
+        text-decoration: none;
+    }
+    
+    .article-card {
+        border-left: 5px solid var(--light-green);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .article-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .article-card .card-title {
+        color: var(--dark-green);
+        font-weight: 700;
+    }
+    
+    .article-meta {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+    
+    .article-card.expanded {
+        border-left-color: var(--primary-green);
+    }
+    
+    .search-container {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-container .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 10px;
+        color: #6c757d;
+    }
+    
+    .search-container input {
+        padding-left: 40px;
+        border-radius: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <h1><i class="fas fa-book me-2"></i> <span data-i18n="knowledge_base">Knowledge Base</span></h1>
+        <p class="lead">Agricultural best practices, farming techniques, and seasonal guides.</p>
+    </div>
+    <div class="col-lg-4 text-end">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <!-- Search and Categories -->
+        <div class="search-container">
+            <span class="search-icon"><i class="fas fa-search"></i></span>
+            <input type="text" class="form-control" id="article-search" placeholder="Search articles...">
+        </div>
+        
+        <div class="category-pills">
+            <a href="#" class="category-pill {% if current_category == 'all' %}active{% endif %}" data-category="all">All Categories</a>
+            {% for category in categories %}
+                <a href="#" class="category-pill {% if current_category == category %}active{% endif %}" data-category="{{ category }}">{{ category|title }}</a>
+            {% endfor %}
+        </div>
+        
+        <!-- Articles List -->
+        <div id="articles-container">
+            {% if article %}
+                <!-- Single Article View -->
+                <div class="card article-card mb-4" data-article-id="{{ article.id }}" data-category="{{ article.category }}">
+                    <div class="card-body">
+                        <h2 class="card-title">{{ article.title }}</h2>
+                        <div class="article-meta">
+                            <span class="article-author">{{ article.author }}</span> | 
+                            <span class="article-date">{{ article.created_at.strftime('%b %d, %Y') }}</span> | 
+                            <span class="article-category badge bg-secondary">{{ article.category }}</span>
+                        </div>
+                        <div class="card-text">{{ article.content }}</div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('knowledge_base') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-arrow-left me-2"></i> Back to all articles
+                            </a>
+                            <button class="btn btn-outline-primary btn-sm save-offline-btn">
+                                <i class="fas fa-bookmark me-1"></i> Save Offline
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% elif articles %}
+                <!-- Articles List View -->
+                {% for article in articles %}
+                    <div class="card article-card mb-4" data-article-id="{{ article.id }}" data-category="{{ article.category }}">
+                        <div class="card-body">
+                            <h3 class="card-title">{{ article.title }}</h3>
+                            <div class="article-meta">
+                                <span class="article-author">{{ article.author }}</span> | 
+                                <span class="article-date">{{ article.created_at.strftime('%b %d, %Y') }}</span> | 
+                                <span class="article-category badge bg-secondary">{{ article.category }}</span>
+                            </div>
+                            <p class="card-text" data-full-content="{{ article.content }}">{{ article.content|truncate(200) }}</p>
+                            <div class="mt-3">
+                                <a href="{{ url_for('knowledge_article', article_id=article.id) }}" class="btn btn-outline-primary btn-sm read-more-btn">
+                                    <i class="fas fa-book-open me-1"></i> Read More
+                                </a>
+                                <button class="btn btn-outline-primary btn-sm save-offline-btn">
+                                    <i class="fas fa-bookmark me-1"></i> Save Offline
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> <span data-i18n="no_articles">No articles found.</span>
+                </div>
+            {% endif %}
+            
+            <!-- No Results Message (Hidden by default) -->
+            <div id="no-results-message" style="display: none;" class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> No articles match your search criteria.
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3">
+        <!-- Sidebar -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-star me-2"></i> Popular Articles</h2>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <a href="#">Sustainable Farming Practices</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#">Water Conservation Techniques</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#">Natural Pest Control Methods</a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#">Soil Health Management</a>
+                    </li>
+                    <li>
+                        <a href="#">Crop Rotation Benefits</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-calendar-alt me-2"></i> Seasonal Guides</h2>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-sun me-2 text-warning"></i> Summer Crops
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cloud-rain me-2 text-primary"></i> Monsoon Farming
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-snowflake me-2 text-info"></i> Winter Crops
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="fas fa-seedling me-2 text-success"></i> Spring Planting
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-tools me-2"></i> Useful Resources</h2>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-file-pdf me-2"></i> Farming Guides PDF
+                    </a>
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-video me-2"></i> Video Tutorials
+                    </a>
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-phone me-2"></i> Expert Helpline
+                    </a>
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-university me-2"></i> Govt. Schemes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/knowledge_base.js') }}"></script>
+{% endblock %}

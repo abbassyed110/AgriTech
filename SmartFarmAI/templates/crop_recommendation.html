@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}Crop Recommendation - AgriTech Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .recommendation-card {
+        border-left: 5px solid var(--primary-green);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .recommendation-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .confidence-meter {
+        height: 10px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        margin-top: 5px;
+        overflow: hidden;
+    }
+    
+    .confidence-value {
+        height: 100%;
+        background-color: var(--primary-green);
+    }
+    
+    .soil-params-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+    
+    .range-container {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+    
+    .range-value {
+        position: absolute;
+        right: 0;
+        top: 0;
+        font-weight: 600;
+    }
+    
+    .recommendation-header {
+        cursor: pointer;
+        padding: 0.75rem;
+        background-color: rgba(0, 0, 0, 0.03);
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .recommendation-header:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .recommendation-header.active {
+        background-color: rgba(76, 175, 80, 0.1);
+    }
+    
+    .recommendation-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    
+    .crop-suitability {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <h1><i class="fas fa-seedling me-2"></i> <span data-i18n="crop_recommendation">Crop Recommendation</span></h1>
+        <p class="lead">Get AI-powered crop recommendations based on your soil parameters and climate conditions.</p>
+    </div>
+    <div class="col-lg-4 text-end">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-5">
+        <!-- Soil Parameters Form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-flask me-2"></i> <span data-i18n="soil_parameters">Soil Parameters</span></h2>
+            </div>
+            <div class="card-body">
+                <form id="recommendation-form" action="{{ url_for('crop_recommendation') }}" method="post">
+                    <div class="soil-params-container">
+                        <div class="mb-4">
+                            <label for="soil-type" class="form-label" data-i18n="soil_type">Soil Type</label>
+                            <select class="form-select" id="soil-type" name="soil_type" required>
+                                <option value="" selected disabled>Select soil type</option>
+                                <option value="clay">Clay</option>
+                                <option value="sandy">Sandy</option>
+                                <option value="loamy">Loamy</option>
+                                <option value="silty">Silty</option>
+                                <option value="peaty">Peaty</option>
+                                <option value="chalky">Chalky</option>
+                                <option value="black">Black</option>
+                            </select>
+                        </div>
+                        
+                        <div class="range-container">
+                            <label for="ph-value" class="form-label" data-i18n="ph_value">pH Value</label>
+                            <span class="range-value" id="ph-value-display">7.0</span>
+                            <input type="range" class="form-range range-input" id="ph-value" name="ph_value" min="4.0" max="10.0" step="0.1" value="7.0">
+                        </div>
+                        
+                        <div class="range-container">
+                            <label for="rainfall" class="form-label">Rainfall (mm)</label>
+                            <span class="range-value" id="rainfall-display">1000</span>
+                            <input type="range" class="form-range range-input" id="rainfall" name="rainfall" min="0" max="5000" step="50" value="1000">
+                        </div>
+                        
+                        <div class="range-container">
+                            <label for="temperature" class="form-label">Temperature (°C)</label>
+                            <span class="range-value" id="temperature-display">25</span>
+                            <input type="range" class="form-range range-input" id="temperature" name="temperature" min="-10" max="50" step="1" value="25">
+                        </div>
+                        
+                        <div class="range-container">
+                            <label for="humidity" class="form-label">Humidity (%)</label>
+                            <span class="range-value" id="humidity-display">60</span>
+                            <input type="range" class="form-range range-input" id="humidity" name="humidity" min="0" max="100" step="1" value="60">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i> <span data-i18n="get_recommendations">Get Recommendations</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Previous Recommendations -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-history me-2"></i> <span data-i18n="previous_recommendations">Previous Recommendations</span></h2>
+            </div>
+            <div class="card-body">
+                {% if previous_recommendations %}
+                    <div class="previous-recommendations">
+                        {% for recommendation in previous_recommendations %}
+                            <div class="previous-recommendation-item" data-crops="{{ recommendation.recommended_crops }}">
+                                <div class="recommendation-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-calendar-alt me-2"></i> {{ recommendation.created_at.strftime('%Y-%m-%d') }}
+                                    </div>
+                                    <div class="soil-badge">
+                                        <span class="badge bg-secondary">{{ recommendation.soil_type }}</span>
+                                    </div>
+                                </div>
+                                <div class="recommendation-body">
+                                    <div class="px-3 py-2">
+                                        <div class="row mb-3">
+                                            <div class="col-6">
+                                                <small class="text-muted">pH: {{ recommendation.ph_value }}</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Rainfall: {{ recommendation.rainfall }} mm</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Temperature: {{ recommendation.temperature }}°C</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Humidity: {{ recommendation.humidity }}%</small>
+                                            </div>
+                                        </div>
+                                        <canvas class="recommendation-chart" height="150"></canvas>
+                                        
+                                        <div class="top-crops mt-3">
+                                            <small class="text-muted d-block mb-2">Top recommendations:</small>
+                                            {% for crop in recommendation.parsed_crops[:3] %}
+                                                <div class="d-flex justify-content-between">
+                                                    <span>{{ crop.crop|title }}</span>
+                                                    <span class="text-success">{{ (crop.confidence * 100)|round(1) }}%</span>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> No previous recommendations found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-7">
+        <!-- Recommendation Results -->
+        <div class="card" id="recommendation-results" {% if recommended_crops %}data-recommended-crops="{{ recommended_crops }}"{% endif %}>
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-leaf me-2"></i> <span data-i18n="recommended_crops">Recommended Crops</span></h2>
+            </div>
+            <div class="card-body">
+                {% if recommended_crops %}
+                    <div class="recommendation-info mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="soil-info">
+                                    <h3 class="h6">Soil Information</h3>
+                                    <p class="mb-1"><strong>Soil Type:</strong> {{ soil_type|title }}</p>
+                                    <p class="mb-1"><strong>pH Value:</strong> {{ ph_value }}</p>
+                                    <p class="mb-0"><strong>Rainfall:</strong> {{ rainfall }} mm</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="climate-info">
+                                    <h3 class="h6">Climate Information</h3>
+                                    <p class="mb-1"><strong>Temperature:</strong> {{ temperature }}°C</p>
+                                    <p class="mb-0"><strong>Humidity:</strong> {{ humidity }}%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container mb-4">
+                        <canvas id="recommendation-chart" height="200"></canvas>
+                    </div>
+                    
+                    <div id="crop-details-container">
+                        {% for crop in recommended_crops %}
+                            <div class="card recommendation-card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h4 class="card-title">{{ loop.index }}. {{ crop.crop|title }}</h4>
+                                        <button class="btn btn-outline-primary btn-sm add-to-plan-btn" data-crop-name="{{ crop.crop }}">
+                                            <i class="fas fa-plus me-1"></i> <span data-i18n="add_to_farm">Add to Farm Plan</span>
+                                        </button>
+                                    </div>
+                                    <div class="confidence-container mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Confidence Score:</span>
+                                            <span class="confidence-text">{{ (crop.confidence * 100)|round(1) }}%</span>
+                                        </div>
+                                        <div class="confidence-meter">
+                                            <div class="confidence-value" style="width: {{ crop.confidence * 100 }}%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="crop-suitability">
+                                        <p>
+                                            <i class="fas fa-check-circle text-{{ 'success' if crop.suitable_for_soil else 'danger' }}"></i>
+                                            Suitable for your soil type: <strong>{{ 'Yes' if crop.suitable_for_soil else 'No' }}</strong>
+                                        </p>
+                                        <p>
+                                            <i class="fas fa-check-circle text-{{ 'success' if crop.suitable_for_ph else 'danger' }}"></i>
+                                            Suitable for your soil pH: <strong>{{ 'Yes' if crop.suitable_for_ph else 'No' }}</strong>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="recommendation-placeholder text-center py-5">
+                        <i class="fas fa-seedling fa-3x text-muted mb-3"></i>
+                        <h3 class="h5">Enter your soil parameters to get crop recommendations</h3>
+                        <p class="text-muted">Our AI system will analyze your inputs and suggest the best crops for your conditions.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/crop_recommendation.js') }}"></script>
+{% endblock %}

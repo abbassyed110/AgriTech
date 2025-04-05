@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Login - AgriTech Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        max-width: 500px;
+        margin: 2rem auto;
+    }
+    
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-icon {
+        font-size: 3rem;
+        color: var(--primary-green);
+        margin-bottom: 1rem;
+    }
+    
+    .auth-form {
+        background-color: var(--white);
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+    
+    .language-options {
+        text-align: center;
+        margin-top: 2rem;
+    }
+    
+    .language-badge {
+        display: inline-block;
+        margin: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        background-color: #e9ecef;
+        color: var(--black);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: background-color 0.3s ease;
+    }
+    
+    .language-badge:hover {
+        background-color: var(--primary-green);
+        color: var(--white);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-header">
+        <div class="auth-icon">
+            <i class="fas fa-leaf"></i>
+        </div>
+        <h1><span data-i18n="login">Login</span></h1>
+        <p class="text-muted">Access your AgriTech account</p>
+    </div>
+    
+    <div class="auth-form">
+        <form action="{{ url_for('login') }}" method="post">
+            <div class="mb-3">
+                <label for="username" class="form-label" data-i18n="username">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="password" class="form-label" data-i18n="password">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+            </div>
+            
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="remember-me" name="remember_me">
+                <label class="form-check-label" for="remember-me" data-i18n="remember_me">Remember Me</label>
+            </div>
+            
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary" data-i18n="login">Login</button>
+            </div>
+            
+            <div class="mt-3 text-center">
+                <a href="#" class="text-decoration-none" data-i18n="forgot_password">Forgot Password?</a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="auth-footer">
+        <p data-i18n="dont_have_account">Don't have an account?</p>
+        <a href="{{ url_for('register') }}" class="btn btn-outline-primary" data-i18n="create_account">Create Account</a>
+    </div>
+    
+    <div class="language-options">
+        <div class="small text-muted mb-2">Choose your language:</div>
+        <a href="{{ url_for('set_language', lang='en') }}" class="language-badge">English</a>
+        <a href="{{ url_for('set_language', lang='hi') }}" class="language-badge">हिन्दी (Hindi)</a>
+        <a href="{{ url_for('set_language', lang='te') }}" class="language-badge">తెలుగు (Telugu)</a>
+        <a href="{{ url_for('set_language', lang='ta') }}" class="language-badge">தமிழ் (Tamil)</a>
+        <a href="{{ url_for('set_language', lang='mr') }}" class="language-badge">मराठी (Marathi)</a>
+        <a href="{{ url_for('set_language', lang='bn') }}" class="language-badge">বাংলা (Bengali)</a>
+    </div>
+</div>
+{% endblock %}

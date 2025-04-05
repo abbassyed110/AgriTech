@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - AgriTech Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-section {
+        margin-bottom: 2rem;
+    }
+    
+    .profile-section-title {
+        border-bottom: 2px solid var(--light-green);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .avatar-container {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 1.5rem;
+        position: relative;
+    }
+    
+    .avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: var(--primary-green);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: 700;
+    }
+    
+    .profile-info {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .profile-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .profile-username {
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+    
+    .language-select {
+        max-width: 200px;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <h1><i class="fas fa-user-circle me-2"></i> <span data-i18n="profile">My Profile</span></h1>
+        <p class="lead">Manage your account and farm information.</p>
+    </div>
+    <div class="col-lg-4 text-end">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <!-- Profile Overview -->
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <div class="avatar-container">
+                    <div class="avatar">
+                        {{ current_user.username[0]|upper }}
+                    </div>
+                </div>
+                <div class="profile-info">
+                    <div class="profile-name">{{ current_user.full_name or current_user.username }}</div>
+                    <div class="profile-username">@{{ current_user.username }}</div>
+                    <div class="profile-email">{{ current_user.email }}</div>
+                </div>
+                <div class="d-grid mt-3">
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">
+                        <i class="fas fa-sign-out-alt me-2"></i> <span data-i18n="logout">Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Language Preference -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-language me-2"></i> <span data-i18n="language_preference">Language Preference</span></h2>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('set_language', lang=current_user.language_preference) }}" method="get" id="language-form">
+                    <div class="mb-3 language-select">
+                        <select class="form-select" id="language-selector" name="lang" onchange="this.form.action='/set_language/' + this.value; this.form.submit();">
+                            <option value="en" {% if current_user.language_preference == 'en' %}selected{% endif %}>English</option>
+                            <option value="hi" {% if current_user.language_preference == 'hi' %}selected{% endif %}>हिन्दी (Hindi)</option>
+                            <option value="te" {% if current_user.language_preference == 'te' %}selected{% endif %}>తెలుగు (Telugu)</option>
+                            <option value="ta" {% if current_user.language_preference == 'ta' %}selected{% endif %}>தமிழ் (Tamil)</option>
+                            <option value="mr" {% if current_user.language_preference == 'mr' %}selected{% endif %}>मराठी (Marathi)</option>
+                            <option value="bn" {% if current_user.language_preference == 'bn' %}selected{% endif %}>বাংলা (Bengali)</option>
+                        </select>
+                    </div>
+                </form>
+                <p class="text-center small text-muted">Your preferred language for notifications and content.</p>
+            </div>
+        </div>
+        
+        <!-- Account Stats -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-chart-bar me-2"></i> Account Statistics</h2>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="h4">{{ current_user.crops|length }}</div>
+                        <div class="small text-muted">Crops</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4">{{ current_user.marketplace_listings|length }}</div>
+                        <div class="small text-muted">Listings</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4">{{ current_user.created_at.strftime('%b %Y') }}</div>
+                        <div class="small text-muted">Joined</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <!-- Edit Profile Form -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-edit me-2"></i> Edit Profile</h2>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('profile') }}" method="post">
+                    <!-- Personal Information -->
+                    <div class="profile-section">
+                        <h3 class="h6 profile-section-title"><span data-i18n="personal_info">Personal Information</span></h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="full-name" class="form-label" data-i18n="full_name">Full Name</label>
+                                <input type="text" class="form-control" id="full-name" name="full_name" value="{{ current_user.full_name or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label" data-i18n="email">Email</label>
+                                <input type="email" class="form-control" id="email" value="{{ current_user.email }}" disabled>
+                                <small class="form-text text-muted">Email cannot be changed</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label" data-i18n="username">Username</label>
+                                <input type="text" class="form-control" id="username" value="{{ current_user.username }}" disabled>
+                                <small class="form-text text-muted">Username cannot be changed</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label" data-i18n="phone">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone or '' }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Farm Information -->
+                    <div class="profile-section">
+                        <h3 class="h6 profile-section-title"><span data-i18n="farm_info">Farm Information</span></h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="farm-size" class="form-label" data-i18n="farm_size">Farm Size (acres)</label>
+                                <input type="number" class="form-control" id="farm-size" name="farm_size" step="0.01" min="0" value="{{ current_user.farm_size or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="farm-location" class="form-label" data-i18n="farm_location">Farm Location</label>
+                                <input type="text" class="form-control" id="farm-location" name="farm_location" value="{{ current_user.farm_location or '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="farm-latitude" class="form-label">Latitude</label>
+                                <input type="number" class="form-control" id="farm-latitude" name="farm_latitude" step="0.000001" placeholder="e.g. 28.644800" value="{{ current_user.farm_latitude or '' }}">
+                                <small class="form-text text-muted">Decimal format (e.g. 28.644800)</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="farm-longitude" class="form-label">Longitude</label>
+                                <input type="number" class="form-control" id="farm-longitude" name="farm_longitude" step="0.000001" placeholder="e.g. 77.216721" value="{{ current_user.farm_longitude or '' }}">
+                                <small class="form-text text-muted">Decimal format (e.g. 77.216721)</small>
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> To get accurate weather forecasts and alerts, please enter your farm's latitude and longitude.
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="reset" class="btn btn-outline-secondary" data-i18n="cancel">Reset</button>
+                        <button type="submit" class="btn btn-primary" data-i18n="save">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

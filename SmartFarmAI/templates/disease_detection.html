@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Disease Detection - AgriTech Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-area {
+        border: 2px dashed #ced4da;
+        border-radius: 8px;
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        cursor: pointer;
+        transition: border-color 0.3s ease;
+    }
+    
+    .upload-area:hover {
+        border-color: var(--primary-green);
+    }
+    
+    .upload-area.drag-over {
+        border-color: var(--primary-green);
+        background-color: rgba(76, 175, 80, 0.05);
+    }
+    
+    .upload-area.has-image {
+        border-style: solid;
+    }
+    
+    .upload-icon {
+        font-size: 3.5rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+    
+    #image-preview-container {
+        display: none;
+        margin-top: 1.5rem;
+    }
+    
+    #image-preview {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 8px;
+    }
+    
+    .diagnosis-result {
+        border-left: 5px solid var(--red);
+        padding-left: 1rem;
+    }
+    
+    .confidence-meter {
+        height: 10px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        margin-top: 5px;
+        margin-bottom: 15px;
+        overflow: hidden;
+    }
+    
+    .confidence-value {
+        height: 100%;
+        background-color: var(--primary-green);
+    }
+    
+    .treatment-recommendation {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .previous-diagnosis-item {
+        margin-bottom: 1rem;
+    }
+    
+    .diagnosis-header {
+        cursor: pointer;
+        padding: 0.75rem;
+        background-color: rgba(0, 0, 0, 0.03);
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+    
+    .diagnosis-header:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .diagnosis-header.active {
+        background-color: rgba(76, 175, 80, 0.1);
+    }
+    
+    .diagnosis-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <h1><i class="fas fa-bug me-2"></i> <span data-i18n="disease_detection">Disease Detection</span></h1>
+        <p class="lead">Upload photos of your plants to identify diseases and get treatment recommendations.</p>
+    </div>
+    <div class="col-lg-4 text-end">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <!-- Upload and Analysis Form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-upload me-2"></i> <span data-i18n="upload_image">Upload Plant Image</span></h2>
+            </div>
+            <div class="card-body">
+                <form id="disease-detection-form" action="{{ url_for('disease_detection') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="crop-name" class="form-label">Select Crop Type</label>
+                        <select class="form-select" id="crop-name" name="crop_name" required>
+                            <option value="" selected disabled>Select crop type</option>
+                            <option value="rice">Rice</option>
+                            <option value="wheat">Wheat</option>
+                            <option value="maize">Maize</option>
+                            <option value="potato">Potato</option>
+                            <option value="tomato">Tomato</option>
+                            <option id="other-crop-option" value="other">Other (please specify)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4" id="custom-crop-input" style="display: none;">
+                        <label for="custom-crop" class="form-label">Enter Crop Type</label>
+                        <input type="text" class="form-control" id="custom-crop" name="custom_crop">
+                    </div>
+                    
+                    <div id="upload-area" class="upload-area">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h3 class="h5 mb-3" data-i18n="drag_drop">Drag and drop image here or click to upload</h3>
+                        <p class="text-muted mb-0">Supported formats: JPG, JPEG, PNG</p>
+                        <input type="file" id="plant-image" name="plant_image" accept="image/jpeg,image/png,image/jpg" style="display: none;">
+                        
+                        <div id="image-preview-container">
+                            <img id="image-preview" src="#" alt="Preview">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i> <span data-i18n="analyze_image">Analyze Image</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Diagnosis Result (if available) -->
+        {% if disease %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="h5 mb-0"><i class="fas fa-microscope me-2"></i> <span data-i18n="diagnosis_result">Diagnosis Result</span></h2>
+                </div>
+                <div class="card-body">
+                    <div id="diagnosis-result" data-confidence="{{ confidence }}">
+                        <h3>Detected Disease: <span class="text-danger">{{ disease }}</span></h3>
+                        
+                        <div class="confidence-container mb-4">
+                            <div class="d-flex justify-content-between">
+                                <span data-i18n="confidence">Confidence:</span>
+                                <span class="confidence-text">{{ (confidence * 100)|round(1) }}%</span>
+                            </div>
+                            <div class="confidence-meter">
+                                <div class="confidence-value" style="width: {{ confidence * 100 }}%;"></div>
+                            </div>
+                            <small class="text-muted">
+                                {% if confidence >= 0.8 %}
+                                    High confidence in this diagnosis
+                                {% elif confidence >= 0.6 %}
+                                    Moderate confidence in this diagnosis
+                                {% else %}
+                                    Low confidence - consider consulting with an expert
+                                {% endif %}
+                            </small>
+                        </div>
+                        
+                        <div class="treatment-recommendation">
+                            <h4 class="h5 mb-3"><i class="fas fa-medkit me-2"></i> <span data-i18n="treatment">Treatment Recommendation</span></h4>
+                            <p>{{ treatment }}</p>
+                            
+                            <div class="alert alert-info mt-3">
+                                <i class="fas fa-info-circle me-2"></i> For best results, consult with a local agriculture extension officer.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-5">
+        <!-- Previous Diagnoses -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-history me-2"></i> <span data-i18n="previous_diagnoses">Previous Diagnoses</span></h2>
+            </div>
+            <div class="card-body">
+                {% if previous_diagnoses %}
+                    <div class="previous-diagnoses">
+                        {% for diagnosis in previous_diagnoses %}
+                            <div class="previous-diagnosis-item">
+                                <div class="diagnosis-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-secondary me-2">{{ diagnosis.crop_name }}</span>
+                                        <span class="text-danger">{{ diagnosis.diagnosis_result }}</span>
+                                    </div>
+                                    <small class="text-muted">{{ diagnosis.created_at.strftime('%Y-%m-%d') }}</small>
+                                </div>
+                                <div class="diagnosis-body">
+                                    <div class="px-3 py-2">
+                                        <div class="confidence-container mb-3">
+                                            <div class="d-flex justify-content-between">
+                                                <span data-i18n="confidence">Confidence:</span>
+                                                <span>{{ (diagnosis.confidence_score * 100)|round(1) }}%</span>
+                                            </div>
+                                            <div class="confidence-meter">
+                                                <div class="confidence-value" style="width: {{ diagnosis.confidence_score * 100 }}%;"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="treatment-summary">
+                                            <h4 class="h6 mb-2">Treatment:</h4>
+                                            <p class="small">{{ diagnosis.treatment_recommendation }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> No previous diagnoses found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Tips for Better Images -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-lightbulb me-2"></i> Tips for Better Results</h2>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li class="mb-2">Ensure good lighting when taking photos</li>
+                    <li class="mb-2">Focus clearly on the affected area of the plant</li>
+                    <li class="mb-2">Include both healthy and infected parts for comparison</li>
+                    <li class="mb-2">Take multiple photos from different angles if needed</li>
+                    <li>Provide the correct crop type for more accurate results</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/disease_detection.js') }}"></script>
+{% endblock %}

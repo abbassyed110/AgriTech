@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Weather - AgriTech Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .weather-widget {
+        background-color: var(--white);
+        border-radius: 8px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .weather-widget:hover {
+        transform: translateY(-5px);
+    }
+    
+    .weather-widget.sunny {
+        background: linear-gradient(to bottom, #ffde7a, #ffc145);
+        color: #5d4037;
+    }
+    
+    .weather-widget.cloudy {
+        background: linear-gradient(to bottom, #e6e9f0, #cfd9df);
+        color: #37474f;
+    }
+    
+    .weather-widget.rainy {
+        background: linear-gradient(to bottom, #b6bdda, #8d9db5);
+        color: #263238;
+    }
+    
+    .weather-widget.stormy {
+        background: linear-gradient(to bottom, #6a7a8f, #414a5c);
+        color: #eceff1;
+    }
+    
+    .weather-widget.night {
+        background: linear-gradient(to bottom, #2c3e50, #1a2533);
+        color: #eceff1;
+    }
+    
+    .weather-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    
+    .weather-temp {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .weather-desc {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .weather-detail-item {
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+    
+    .alert-card {
+        border-left: 4px solid var(--red);
+        transition: transform 0.3s ease;
+    }
+    
+    .alert-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .alert-card.severity-low {
+        border-left-color: var(--yellow);
+    }
+    
+    .alert-card.severity-medium {
+        border-left-color: var(--orange);
+    }
+    
+    .alert-card.severity-high {
+        border-left-color: var(--red);
+    }
+    
+    .alert-card.unread {
+        background-color: rgba(76, 175, 80, 0.05);
+    }
+    
+    .rain-animation {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+    
+    .raindrop {
+        position: absolute;
+        width: 2px;
+        height: 15px;
+        background-color: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <h1><i class="fas fa-cloud-sun me-2"></i> <span data-i18n="weather">Weather</span></h1>
+        <p class="lead">Get weather forecasts and alerts for your farm location.</p>
+    </div>
+    <div class="col-lg-4 text-end">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary me-2">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+        </a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#update-location-modal">
+            <i class="fas fa-map-marker-alt me-2"></i> <span data-i18n="update_location">Update Location</span>
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <!-- Current Weather -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-thermometer-half me-2"></i> <span data-i18n="current_weather">Current Weather</span></h2>
+            </div>
+            <div class="card-body p-0">
+                {% if weather_data and not weather_data.error %}
+                    <div class="weather-widget position-relative" id="current-weather-widget" data-weather="{{ weather_data|tojson }}">
+                        <div class="weather-icon">
+                            <i class="fas fa-cloud fa-3x"></i>
+                        </div>
+                        <div class="weather-temp">{{ weather_data.temperature|round|int }}°C</div>
+                        <div class="weather-desc text-capitalize">{{ weather_data.description }}</div>
+                        <div class="weather-details mt-3">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="weather-detail-item">
+                                        <i class="fas fa-tint me-2"></i> <span data-i18n="humidity">Humidity</span>: {{ weather_data.humidity }}%
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="weather-detail-item">
+                                        <i class="fas fa-wind me-2"></i> <span data-i18n="wind_speed">Wind</span>: {{ weather_data.wind_speed }} m/s
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <div class="weather-detail-item">
+                                        <i class="fas fa-cloud-rain me-2"></i> <span data-i18n="rainfall">Rainfall</span>: {{ weather_data.rainfall }} mm
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% elif current_user.farm_latitude and current_user.farm_longitude %}
+                    <div class="alert alert-warning m-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i> {{ weather_data.error }}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info m-3">
+                        <i class="fas fa-info-circle me-2"></i> <span data-i18n="no_weather_data">Please set your farm location to get weather data.</span>
+                    </div>
+                    <div class="text-center mb-3">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#update-location-modal">
+                            <i class="fas fa-map-marker-alt me-2"></i> <span data-i18n="update_location">Set Farm Location</span>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Farm Location Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-map-marker-alt me-2"></i> Farm Location</h2>
+            </div>
+            <div class="card-body">
+                {% if current_user.farm_latitude and current_user.farm_longitude and current_user.farm_location %}
+                    <div class="location-details">
+                        <p><strong>Location:</strong> {{ current_user.farm_location }}</p>
+                        <p><strong>Coordinates:</strong> {{ current_user.farm_latitude }}, {{ current_user.farm_longitude }}</p>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#update-location-modal">
+                                <i class="fas fa-edit me-2"></i> Change Location
+                            </button>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Farm location not set.
+                    </div>
+                    <div class="text-center">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#update-location-modal">
+                            <i class="fas fa-map-marker-alt me-2"></i> Set Farm Location
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Weather Tips -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-lightbulb me-2"></i> Weather Tips</h2>
+            </div>
+            <div class="card-body">
+                <div class="tips-list">
+                    <div class="tip-item mb-3">
+                        <h3 class="h6"><i class="fas fa-cloud-rain me-2"></i> Heavy Rainfall</h3>
+                        <p class="small mb-0">Ensure proper drainage in fields and protect harvested crops.</p>
+                    </div>
+                    <div class="tip-item mb-3">
+                        <h3 class="h6"><i class="fas fa-temperature-high me-2"></i> Heat Wave</h3>
+                        <p class="small mb-0">Increase irrigation frequency and provide shade to sensitive crops.</p>
+                    </div>
+                    <div class="tip-item mb-3">
+                        <h3 class="h6"><i class="fas fa-snowflake me-2"></i> Frost</h3>
+                        <p class="small mb-0">Cover sensitive crops with mulch or protective barriers before nightfall.</p>
+                    </div>
+                    <div class="tip-item">
+                        <h3 class="h6"><i class="fas fa-wind me-2"></i> Strong Winds</h3>
+                        <p class="small mb-0">Stake plants properly and secure farm equipment and loose items.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <!-- Weather Forecast -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0"><i class="fas fa-chart-line me-2"></i> <span data-i18n="forecast">7-Day Forecast</span></h2>
+            </div>
+            <div class="card-body">
+                {% if weather_data and not weather_data.error %}
+                    <canvas id="forecast-chart" data-forecast='[
+                        {"date": "Today", "max_temp": 28, "min_temp": 22, "rainfall": 2},
+                        {"date": "Tomorrow", "max_temp": 30, "min_temp": 23, "rainfall": 0},
+                        {"date": "Wed", "max_temp": 32, "min_temp": 24, "rainfall": 0},
+                        {"date": "Thu", "max_temp": 31, "min_temp": 24, "rainfall": 5},
+                        {"date": "Fri", "max_temp": 29, "min_temp": 23, "rainfall": 15},
+                        {"date": "Sat", "max_temp": 27, "min_temp": 21, "rainfall": 10},
+                        {"date": "Sun", "max_temp": 26, "min_temp": 20, "rainfall": 3}
+                    ]' height="250"></canvas>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> <span data-i18n="no_weather_data">Weather forecast data unavailable. Please set your farm location.</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Weather Alerts -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0"><i class="fas fa-exclamation-triangle me-2"></i> <span data-i18n="weather_alerts">Weather Alerts</span></h2>
+                <button id="generate-weather-alerts" class="btn btn-primary btn-sm">
+                    <i class="fas fa-sync-alt me-1"></i> <span data-i18n="generate_alerts">Generate Alerts</span>
+                </button>
+            </div>
+            <div class="card-body">
+                {% if alerts %}
+                    <div class="alerts-list">
+                        {% for alert in alerts %}
+                            <div class="card mb-3 alert-card severity-{{ alert.severity }} {% if not alert.is_read %}unread{% endif %} weather-alert-item" data-alert-id="{{ alert.id }}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h3 class="h5 mb-0 text-capitalize">{{ alert.alert_type|replace('_', ' ') }}</h3>
+                                        <span class="badge {% if alert.severity == 'high' %}bg-danger{% elif alert.severity == 'medium' %}bg-warning text-dark{% else %}bg-info{% endif %}">
+                                            {{ alert.severity|title }}
+                                        </span>
+                                    </div>
+                                    <p class="mt-2 mb-0">{{ alert.alert_message }}</p>
+                                    <div class="small text-muted mt-2">
+                                        <i class="fas fa-calendar-alt me-1"></i> {{ alert.start_date.strftime('%b %d, %Y') }}
+                                        {% if alert.end_date %}
+                                            to {{ alert.end_date.strftime('%b %d, %Y') }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> No weather alerts at this time.
+                    </div>
+                    <p class="text-center">Click "Generate Alerts" to check for potential weather risks in your area.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Location Modal -->
+<div class="modal fade" id="update-location-modal" tabindex="-1" aria-labelledby="update-location-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="update-location-modal-label"><span data-i18n="update_location">Update Farm Location</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="update-location-form" action="{{ url_for('profile') }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="farm-location" class="form-label">Location Name (Village/Town)</label>
+                        <input type="text" class="form-control" id="farm-location" name="farm_location" value="{{ current_user.farm_location or '' }}" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="farm-latitude" class="form-label">Latitude</label>
+                            <input type="number" class="form-control" id="farm-latitude" name="farm_latitude" step="0.000001" placeholder="e.g. 28.644800" value="{{ current_user.farm_latitude or '' }}" required>
+                            <small class="form-text text-muted">Decimal format (e.g. 28.644800)</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="farm-longitude" class="form-label">Longitude</label>
+                            <input type="number" class="form-control" id="farm-longitude" name="farm_longitude" step="0.000001" placeholder="e.g. 77.216721" value="{{ current_user.farm_longitude or '' }}" required>
+                            <small class="form-text text-muted">Decimal format (e.g. 77.216721)</small>
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> Tip: You can find your coordinates using Google Maps. Right-click on your farm location and select "What's here?".
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="save">Save Location</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/weather.js') }}"></script>
+{% endblock %}

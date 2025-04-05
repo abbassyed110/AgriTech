@@ -1,0 +1,641 @@
+/* AgriTech Platform - Main Stylesheet */
+
+/* Color Variables */
+:root {
+  --primary-green: #2e7d32;
+  --secondary-green: #4caf50;
+  --light-green: #8bc34a;
+  --dark-green: #1b5e20;
+  --brown: #795548;
+  --light-brown: #a1887f;
+  --earth: #5d4037;
+  --cream: #f5f5dc;
+  --light-gray: #f1f1f1;
+  --white: #ffffff;
+  --black: #212121;
+  --red: #e53935;
+  --yellow: #ffd600;
+  --blue: #1976d2;
+}
+
+/* Base Styles */
+body {
+  font-family: 'Roboto', 'Noto Sans', sans-serif;
+  color: var(--black);
+  background-color: var(--light-gray);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  color: var(--dark-green);
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+h1 {
+  font-size: 2.2rem;
+  border-bottom: 3px solid var(--light-green);
+  padding-bottom: 0.3em;
+  display: inline-block;
+}
+
+h2 {
+  font-size: 1.8rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+  color: var(--primary-green);
+}
+
+p {
+  margin-bottom: 1em;
+}
+
+a {
+  color: var(--primary-green);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--dark-green);
+  text-decoration: underline;
+}
+
+/* Navigation */
+.navbar {
+  background-color: var(--primary-green);
+  color: var(--white);
+  padding: 1rem 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--white);
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand img {
+  margin-right: 10px;
+  height: 40px;
+}
+
+.navbar-brand:hover {
+  color: var(--white);
+  text-decoration: none;
+}
+
+.navbar-nav .nav-link {
+  color: var(--white);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+  background-color: var(--dark-green);
+  color: var(--white);
+  text-decoration: none;
+}
+
+.navbar-toggler {
+  border-color: var(--white);
+}
+
+.language-selector {
+  margin-left: 15px;
+}
+
+.language-btn {
+  background: transparent;
+  border: 1px solid var(--white);
+  color: var(--white);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.language-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Cards */
+.card {
+  background-color: var(--white);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  background-color: var(--primary-green);
+  color: var(--white);
+  padding: 1rem;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-footer {
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Buttons */
+.btn {
+  border-radius: 4px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: var(--primary-green);
+  border-color: var(--primary-green);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background-color: var(--dark-green);
+  border-color: var(--dark-green);
+}
+
+.btn-secondary {
+  background-color: var(--brown);
+  border-color: var(--brown);
+  color: var(--white);
+}
+
+.btn-secondary:hover {
+  background-color: var(--earth);
+  border-color: var(--earth);
+}
+
+.btn-warning {
+  background-color: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--black);
+}
+
+.btn-danger {
+  background-color: var(--red);
+  border-color: var(--red);
+  color: var(--white);
+}
+
+.btn-outline-primary {
+  border-color: var(--primary-green);
+  color: var(--primary-green);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary-green);
+  color: var(--white);
+}
+
+/* Forms */
+.form-control {
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ced4da;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25);
+}
+
+.form-label {
+  font-weight: 500;
+  color: var(--dark-green);
+}
+
+.form-text {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+  color: #856404;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.alert-info {
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+  color: #0c5460;
+}
+
+/* Dashboard */
+.stats-card {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.stats-card i {
+  font-size: 2.5rem;
+  color: var(--primary-green);
+  margin-bottom: 1rem;
+}
+
+.stats-card h3 {
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.stats-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--dark-green);
+}
+
+.weather-widget {
+  text-align: center;
+  padding: 1rem;
+}
+
+.weather-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.weather-temp {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+/* Crop Recommendation */
+.recommendation-card {
+  border-left: 5px solid var(--primary-green);
+}
+
+.confidence-meter {
+  height: 10px;
+  background-color: #e9ecef;
+  border-radius: 5px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+
+.confidence-value {
+  height: 100%;
+  background-color: var(--primary-green);
+}
+
+/* Disease Detection */
+.upload-area {
+  border: 2px dashed #ced4da;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.upload-area:hover {
+  border-color: var(--primary-green);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+.diagnosis-result {
+  border-left: 5px solid var(--red);
+  padding-left: 1rem;
+}
+
+.treatment-recommendation {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+/* Marketplace */
+.marketplace-filters {
+  background-color: var(--white);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.product-card {
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.product-img {
+  height: 200px;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-img i {
+  font-size: 4rem;
+  color: var(--light-green);
+}
+
+.product-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dark-green);
+}
+
+.product-seller {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+/* Knowledge Base */
+.category-pills {
+  margin-bottom: 1.5rem;
+}
+
+.category-pill {
+  background-color: #e9ecef;
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.category-pill:hover,
+.category-pill.active {
+  background-color: var(--primary-green);
+  color: var(--white);
+  text-decoration: none;
+}
+
+.article-card {
+  border-left: 5px solid var(--light-green);
+}
+
+.article-card .card-title {
+  color: var(--dark-green);
+  font-weight: 700;
+}
+
+.article-meta {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+/* Footer */
+footer {
+  background-color: var(--dark-green);
+  color: var(--white);
+  padding: 2rem 0;
+  margin-top: 3rem;
+}
+
+.footer-links h4 {
+  color: var(--white);
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: var(--white);
+  text-decoration: none;
+}
+
+.copyright {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 2rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Responsive Utility Classes */
+.d-flex {
+  display: flex;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.mb-5 {
+  margin-bottom: 3rem;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.mt-3 {
+  margin-top: 1rem;
+}
+
+.mt-4 {
+  margin-top: 1.5rem;
+}
+
+.mt-5 {
+  margin-top: 3rem;
+}
+
+/* Service Worker Notification */
+.offline-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: var(--dark-green);
+  color: var(--white);
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1050;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.offline-notification.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Weather Alert Levels */
+.alert-level-low {
+  border-left: 5px solid #ffd600;
+}
+
+.alert-level-medium {
+  border-left: 5px solid #ff9800;
+}
+
+.alert-level-high {
+  border-left: 5px solid #e53935;
+}
+
+/* Media Queries */
+@media (max-width: 992px) {
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.6rem;
+  }
+  
+  h3 {
+    font-size: 1.3rem;
+  }
+  
+  .navbar-brand {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  .stats-card {
+    margin-bottom: 1rem;
+  }
+  
+  .upload-area {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  body {
+    font-size: 0.95rem;
+  }
+  
+  h1 {
+    font-size: 1.6rem;
+  }
+  
+  h2 {
+    font-size: 1.4rem;
+  }
+  
+  h3 {
+    font-size: 1.2rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .btn {
+    padding: 0.4rem 0.8rem;
+  }
+}
